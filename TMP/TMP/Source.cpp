@@ -96,7 +96,7 @@ T& myGet(std::tuple<Ts...>& tup)
 // decltype(*expression list*) will return the last type of the list, which is true in this case
 // if declval<T1>() == declval<T2>() is a valid expression, this function will compile and function will return the type of the last expression (true), which is bool
 template <typename T1, typename T2>
-constexpr auto hasEquatableOperator(int) -> decltype(std::declval<T1>() == std::declval<T2>(), true)
+constexpr auto equatable(int) -> decltype(std::declval<T1>() == std::declval<T2>(), true)
 {
 	return true;
 }
@@ -104,7 +104,7 @@ constexpr auto hasEquatableOperator(int) -> decltype(std::declval<T1>() == std::
 // Catch all case, return false.
 // This will be selected if the function above isn't included in compilation, when declval<T1>() == declval<T2>() is NOT a valid expression
 template <typename T1, typename T2>
-constexpr bool hasEquatableOperator(...)
+constexpr bool equatable(...)
 {
 	return false;
 }
@@ -158,8 +158,8 @@ int main()
 	/// END LAB 2
 
 	/// LAB 3
-	static_assert(hasEquatableOperator<equatableClass, equatableClass2>(0), "Classes must have operator==");
-	//static_assert(hasEquatableOperator<equatableClass, nonEquatableClass>(0), "Classes must have operator=="); // Should fail to compile
+	static_assert(equatable<equatableClass, equatableClass2>(0), "Classes must have operator==");
+	//static_assert(equatable<equatableClass, nonEquatableClass>(0), "Classes must have operator=="); // Should fail to compile
 	/// END LAB 3
 
 	return 0;
