@@ -2,6 +2,9 @@
 #include <iostream>
 #include <numeric>
 #include <utility>
+#include <type_traits>
+#include <vector>
+#include <string>
 
 // Compile with Clang with /std=c++1z for C++17 fold expression
 
@@ -143,24 +146,102 @@ public:
 	int member;
 };
 
+///////////////////////////////////////////////////////////////
+/// LAB 4: Traits and Member Detection - Strings aren't containers, built in arrays are
+///////////////////////////////////////////////////////////////
+
+// void_t detection idiom
+// std::void_t<T> turns any type into void (aka nothing)
+
+// Catch all case
+template <typename T, typename = std::void_t<>>
+struct is_container : std::false_type
+{
+};
+
+// Case where T has T::iterator
+// Selected because T::iterator is a valid type -> std::void_t<typename T::iterator> is valid
+template <typename T>
+struct is_container<T, std::void_t<typename T::iterator>> : std::true_type
+{
+};
+
+template <typename T>
+struct is_container_improved : is_container<T>
+{
+};
+
+// Specialied case for std::string
+// std::string is an instantiation of std::basic_string<CharT, Traits, Allocator>
+template <typename CharT, typename Traits, typename Allocator>
+struct is_container_improved<std::basic_string<CharT, Traits, Allocator>> : std::false_type
+{
+};
+
+// Specialized for built in array type
+template <typename T, std::size_t N>
+struct is_container_improved<T[N]> : std::true_type
+{
+};
+
+template <typename T>
+void dump(std::ostream& os, T const& val);
+
+// Overload of dump to print each element of a container
+template <typename T>
+void dump(std::ostream& os, T const& val, std::true_type)
+{
+	os << "<<< begin container >>>\n";
+	for (auto const& elem : val)
+	{
+		dump(os, elem);
+	}
+	os << "<<< end container >>>\n";
+}
+
+// Overload of dump to print value
+template <typename T>
+void dump(std::ostream& os, T const& val, std::false_type)
+{
+	os << "plain value: " << val << '\n';
+}
+
+template <typename T>
+void dump(std::ostream& os, T const& val)
+{
+	dump(os, val, std::integral_constant<bool, is_container_improved<T>::value>{});
+}
+
 int main()
 {
 	/// LAB 1
 	auto distance = euclidean_distance(std::make_tuple(1, 2), std::make_tuple(4, 6));
-	std::cout << distance;
+	std::cout << "Euclidean distance between (1, 2) and (4, 6) is: " << distance << std::endl;
 	/// END LAB 1
 
 
 	/// LAB 2
 	auto tup = std::make_tuple(4.0, "Evelyn", 52);
 	myGet<int>(tup) = 3;
-	std::cout << myGet<int>(tup);
+	std::cout << myGet<int>(tup) << std::endl;
 	/// END LAB 2
 
 	/// LAB 3
 	static_assert(equatable<equatableClass, equatableClass2>(0), "Classes are not equatable");
 	//static_assert(equatable<equatableClass, nonEquatableClass>(0), "Classes are not equatable"); // Should fail to compile
 	/// END LAB 3
+
+
+	/// LAB4
+	std::vector<int> v{ 0, 1, 2, 3, 4 };
+	dump(std::cout, v);
+
+	std::string str{ "this is a string" };
+	dump(std::cout, str); 
+
+	int arr[5] = { 0, 1, 2, 3, 4 };
+	dump(std::cout, arr); 
+	/// END LAB4
 
 	return 0;
 }
