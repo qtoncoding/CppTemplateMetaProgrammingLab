@@ -158,8 +158,8 @@ int main()
 	/// END LAB 2
 
 	/// LAB 3
-	static_assert(equatable<equatableClass, equatableClass2>(0), "Classes must have operator==");
-	//static_assert(equatable<equatableClass, nonEquatableClass>(0), "Classes must have operator=="); // Should fail to compile
+	static_assert(equatable<equatableClass, equatableClass2>(0), "Classes are not equatable");
+	//static_assert(equatable<equatableClass, nonEquatableClass>(0), "Classes are not equatable"); // Should fail to compile
 	/// END LAB 3
 
 	return 0;
