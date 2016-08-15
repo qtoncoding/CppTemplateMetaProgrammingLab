@@ -7,18 +7,23 @@
 /// LAB 1: Variadic templates - Euclidean Distance on tuples
 ///////////////////////////////////////////////////////////////
 
+// Fold expression C++17
 template <typename... T>
 auto fold_sum(T... s)
 {
 	return (... + s);
 }
 
+// Use index_sequence and template parameter unpack to get each element in tuple
+// Calculate sqrt( sum( (tuple1[i] - tuple2[i])^2 for all i) ) )
 template <typename Tuple1, typename Tuple2, std::size_t... index>
 double euclidean_distance(Tuple1&& p1, Tuple2&& p2, std::index_sequence<index...>)
 {
 	return std::sqrt(fold_sum(std::pow((std::get<index>(p1) - std::get<index>(p2)),2) ...));
 }
 
+// Check if 2 tuples are the same size using std::tuple_size
+// Make index_sequence using std::make_index_sequence
 template <typename Tuple1, typename Tuple2>
 double euclidean_distance(Tuple1&& p1, Tuple2&& p2)
 {
@@ -32,15 +37,20 @@ double euclidean_distance(Tuple1&& p1, Tuple2&& p2)
 
 // Type count
 // Find number of occurence of type in type sequence
+
+// Catch all case, will compile error if hit
 template <typename ...>
 struct typeCount;
 
+// Specialize for end of list
 template <typename T>
 struct typeCount<T>
 {
 	static constexpr std::size_t value = 0;
 };
 
+// Peel off first type in list
+// Check if the same type as T with std::is_same
 template <typename T, typename Head, typename... Tail>
 struct typeCount<T, Head, Tail...>
 {
@@ -49,21 +59,26 @@ struct typeCount<T, Head, Tail...>
 
 // Type index
 // Find first index of type in type sequence
+
+// Catch all case, will compile error if hit
 template <typename ...>
 struct typeIndex;
 
+// Specialized case for hit, quit recursion and return 0
 template <typename T, typename... Tails>
 struct typeIndex<T, T, Tails...>
 {
 	constexpr static std::size_t value = 0;
 };
 
+// Specialized case for not hit, add 1 to count, toss Head in type list and recurse
 template <typename T, typename Head, typename... Tail>
 struct typeIndex<T, Head, Tail...>
 {
 	constexpr static std::size_t value = 1 + typeIndex<T, Tail...>::value;
 };
 
+// Reimplement of std::get<T>, check if requested type appears only once in type list, if so return a reference to that element
 template <typename T, typename... Ts>
 T& myGet(std::tuple<Ts...>& tup)
 {
@@ -78,7 +93,6 @@ T& myGet(std::tuple<Ts...>& tup)
 // This uses SFINAE to test if 2 types are equatable
 // decltype(*expression list*) will return the last type of the list, which is true in this case
 // if declval<T1>() == declval<T2>() is a valid expression, this function will compile and function will return the type of the last expression (true), which is bool
-
 template <typename T1, typename T2>
 constexpr auto hasEquatableOperator(int) -> decltype(std::declval<T1>() == std::declval<T2>(), true)
 {
